@@ -1530,13 +1530,53 @@ ipcMain.handle('updater-download', () => {
   return { ok: true };
 });
 
-ipcMain.handle('updater-install', () => {
-  // Delay quitAndInstall so IPC can return first, then force quit
-  setTimeout(() => {
-    autoUpdater.quitAndInstall(false, true);
-    // Force exit if quitAndInstall doesn't kill the app (unsigned apps)
-    setTimeout(() => app.exit(0), 2000);
-  }, 500);
+ipcMain.handle('updater-install', async () => {
+  // Custom install for unsigned Mac apps — Squirrel can't replace unsigned .app
+  const fs = require('fs');
+  const path = require('path');
+  const { execSync, spawn } = require('child_process');
+
+  const cacheDir = path.join(app.getPath('home'), 'Library', 'Caches', 'murph-aio-updater');
+  const zipPath = path.join(cacheDir, 'update.zip');
+  const appPath = path.dirname(path.dirname(path.dirname(path.dirname(process.execPath)))); // up to .app
+
+  if (!fs.existsSync(zipPath)) {
+    return { ok: false, error: 'Update zip not found' };
+  }
+
+  // Write a shell script that waits for us to quit, then replaces the app
+  const scriptPath = path.join(cacheDir, 'install-update.sh');
+  const script = `#!/bin/bash
+sleep 2
+# Extract new app from zip
+TMPDIR=$(mktemp -d)
+unzip -q "${zipPath}" -d "$TMPDIR"
+NEW_APP=$(find "$TMPDIR" -name "*.app" -maxdepth 1 | head -1)
+if [ -z "$NEW_APP" ]; then
+  rm -rf "$TMPDIR"
+  exit 1
+fi
+# Replace old app
+rm -rf "${appPath}"
+mv "$NEW_APP" "${appPath}"
+# Remove quarantine
+xattr -cr "${appPath}"
+# Clean up
+rm -rf "$TMPDIR"
+rm -f "${zipPath}"
+# Relaunch
+open "${appPath}"
+`;
+  fs.writeFileSync(scriptPath, script, { mode: 0o755 });
+
+  // Launch the script detached and quit
+  const child = spawn('bash', [scriptPath], {
+    detached: true,
+    stdio: 'ignore'
+  });
+  child.unref();
+
+  setTimeout(() => app.exit(0), 500);
   return { ok: true };
 });
 

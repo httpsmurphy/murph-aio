@@ -3371,8 +3371,9 @@ document.getElementById('checkUpdateBtn')?.addEventListener('click', async () =>
       btn.onclick = async () => {
         btn.disabled = true;
         btn.textContent = 'Downloading...';
-        statusText.textContent = 'Downloading update...';
+        statusText.textContent = 'Downloading update — this may take a minute...';
         await API.updaterDownload();
+        // Keep showing downloading state until onUpdateDownloaded fires
       };
     } else if (result.error) {
       statusText.textContent = `Update failed: ${result.error}`;
@@ -3401,9 +3402,14 @@ API.onUpdateDownloaded?.(() => {
   if (btn) {
     btn.textContent = 'Restart & Update';
     btn.disabled = false;
-    btn.onclick = async () => { await API.updaterInstall(); };
+    btn.onclick = async () => {
+      btn.disabled = true;
+      btn.textContent = 'Installing...';
+      statusText.textContent = 'Installing update — app will restart...';
+      await API.updaterInstall();
+    };
   }
-  if (statusText) statusText.textContent = 'Update downloaded! Click to restart and apply.';
+  if (statusText) statusText.textContent = 'Update ready! Click to restart and apply.';
 });
 
 // Set version in settings dynamically
