@@ -1507,21 +1507,15 @@ ipcMain.handle('updater-check', async () => {
   try {
     const result = await autoUpdater.checkForUpdates();
     if (result && result.updateInfo) {
-      // Compare versions — if remote == current, no update
       const remote = result.updateInfo.version;
       const current = app.getVersion();
-      if (remote === current) return { update: false };
-      return { update: true, version: remote };
+      if (remote && remote !== current) {
+        return { update: true, version: remote };
+      }
     }
     return { update: false };
   } catch (e) {
-    console.error('[updater] Manual check failed:', e.message);
-    // 404 or "no published releases" = treat as up-to-date, not an error
-    const msg = (e.message || '').toLowerCase();
-    if (msg.includes('404') || msg.includes('no published') || msg.includes('cannot find') || msg.includes('net::')) {
-      return { update: false };
-    }
-    return { update: false, error: e.message };
+    return { update: false, error: e.message || 'Unknown error' };
   }
 });
 
