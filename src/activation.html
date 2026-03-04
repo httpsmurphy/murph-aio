@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Murph AIO — Activate</title>
+<link rel="stylesheet" href="css/theme.css">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: drag;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 30% 40%, rgba(0,184,148,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(249,115,22,0.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .container {
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    padding: 40px 30px;
+    -webkit-app-region: no-drag;
+  }
+  .logo-wrap {
+    margin-bottom: 28px;
+    position: relative;
+    display: inline-block;
+  }
+  .logo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    animation: spin 4s linear infinite;
+  }
+  @keyframes spin { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+  .logo-img {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    position: relative; z-index: 1;
+    border: 3px solid var(--bg-base);
+    display: block;
+  }
+  .title {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+  .key-input {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-bright);
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    letter-spacing: 2px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .key-input::placeholder { color: var(--text-muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .key-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-dim); }
+  .key-input.error { border-color: var(--error); box-shadow: 0 0 0 3px rgba(255,107,107,0.1); }
+  .activate-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px var(--primary-glow);
+    letter-spacing: 0.5px;
+  }
+  .activate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--primary-glow); }
+  .activate-btn:active { transform: scale(0.98); }
+  .activate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .retry-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 10px;
+    display: none;
+  }
+  .retry-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .error-msg {
+    color: var(--error);
+    font-size: 13px;
+    margin-top: 12px;
+    min-height: 20px;
+    line-height: 1.5;
+  }
+  .error-msg.connection { color: var(--warning); }
+  .footer { margin-top: 36px; font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo-wrap">
+    <img class="logo-img" src="https://cdn.discordapp.com/icons/1464279501277102142/c5956eedc47c1b0ae164cea6e9696ac7.webp?size=128" alt="">
+  </div>
+  <div class="title">Murph AIO</div>
+  <div class="subtitle">Enter your license key</div>
+  <input type="text" class="key-input" id="keyInput" placeholder="MURPH-XXXX-XXXX-XXXX" spellcheck="false" autocomplete="off">
+  <button class="activate-btn" id="activateBtn">Activate</button>
+  <button class="retry-btn" id="retryBtn">Retry Connection</button>
+  <div class="error-msg" id="errorMsg"></div>
+  <div class="footer">v1.7 &mdash; Contact Murph for a key</div>
+</div>
+<script>
+  const ki = document.getElementById('keyInput');
+  const btn = document.getElementById('activateBtn');
+  const retryBtn = document.getElementById('retryBtn');
+  const err = document.getElementById('errorMsg');
+
+  ki.addEventListener('input', () => {
+    err.textContent = ''; err.className = 'error-msg'; ki.classList.remove('error');
+    retryBtn.style.display = 'none';
+    let v = ki.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    let p = [];
+    if (v.startsWith('MURPH')) { p.push('MURPH'); v = v.slice(5); }
+    else if (v.length) { p.push(v.slice(0,5)); v = v.slice(5); }
+    while (v.length) { p.push(v.slice(0,4)); v = v.slice(4); }
+    ki.value = p.join('-');
+  });
+
+  async function activate() {
+    const key = ki.value.trim();
+    if (!key) { err.textContent = 'Please enter a key'; ki.classList.add('error'); return; }
+    btn.disabled = true; btn.textContent = 'Validating...';
+    retryBtn.style.display = 'none';
+    try {
+      const r = await window.murphAPI.validateKey(key);
+      if (r.success) {
+        btn.textContent = 'Activated!';
+        btn.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-light))';
+        setTimeout(() => window.murphAPI.goApp(), 500);
+      } else {
+        const isConnection = (r.error || '').toLowerCase().includes('connect') || (r.error || '').toLowerCase().includes('internet');
+        err.textContent = r.error || 'Invalid key';
+        err.className = 'error-msg' + (isConnection ? ' connection' : '');
+        ki.classList.add('error');
+        if (isConnection) retryBtn.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Activate';
+      }
+    } catch (e) {
+      err.textContent = 'Connection error. Check your internet.';
+      err.className = 'error-msg connection';
+      retryBtn.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Activate';
+    }
+  }
+
+  btn.addEventListener('click', activate);
+  retryBtn.addEventListener('click', activate);
+  ki.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
+  ki.focus();
+</script>
+</body>
+</html>
