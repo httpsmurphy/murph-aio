@@ -1685,7 +1685,8 @@ ipcMain.handle('open-extension-folder', () => {
   if (!fs.existsSync(userPath)) {
     return { success: false, error: 'Extension not found' };
   }
-  shell.openPath(userPath);
+  // Open the PARENT folder so user can see and drag the murph-extension folder
+  shell.openPath(path.dirname(userPath));
   return { success: true };
 });
 
