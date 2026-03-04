@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('murphAPI', {
   // Extension management
   getExtensionPath: () => ipcRenderer.invoke('get-extension-path'),
   openChromeWithExtension: () => ipcRenderer.invoke('open-chrome-with-extension'),
+  openExtensionFolder: () => ipcRenderer.invoke('open-extension-folder'),
   getVeryLinks: () => ipcRenderer.invoke('get-very-links'),
   saveVeryLink: (link) => ipcRenderer.invoke('save-very-link', link),
   deleteVeryLink: (id) => ipcRenderer.invoke('delete-very-link', id),
@@ -113,5 +114,11 @@ contextBridge.exposeInMainWorld('murphAPI', {
   },
   onUpdateDownloaded: (callback) => {
     ipcRenderer.on('update-downloaded', () => callback());
+  },
+  onUpdateChecking: (callback) => {
+    ipcRenderer.on('update-checking', () => callback());
+  },
+  onUpdateCheckResult: (callback) => {
+    ipcRenderer.on('update-check-result', (event, data) => callback(data));
   }
 });

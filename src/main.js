@@ -172,12 +172,16 @@ function logCheckoutLocally(data) {
 
 // Valid license keys
 const VALID_KEYS = [
-  'MURPH-0001-AAAA-BBBB',
-  'MURPH-0002-CCCC-DDDD',
-  'MURPH-0003-EEEE-FFFF',
-  'MURPH-0004-GGGG-HHHH',
-  'MURPH-0005-IIII-JJJJ',
-  'MURPH-TEST-1234-5678'
+  'MURPH-X7K9-QW3N-P2LM',
+  'MURPH-R4FJ-HT8V-D6YC',
+  'MURPH-B5WZ-MK2G-N9XA',
+  'MURPH-J8LP-VF4S-C3QE',
+  'MURPH-T6HD-YN7R-W1BK',
+  'MURPH-G2MC-PX5J-F8ZV',
+  'MURPH-A9QW-DK6L-H4RT',
+  'MURPH-N3YB-SG7F-V2XP',
+  'MURPH-E5CZ-WJ9M-K1DA',
+  'MURPH-U8FH-LT3Q-R6NG'
 ];
 
 // --- Remote license validation (Supabase) ---
@@ -1676,6 +1680,15 @@ ipcMain.handle('get-extension-path', () => {
   return fs.existsSync(userPath) ? userPath : null;
 });
 
+ipcMain.handle('open-extension-folder', () => {
+  const { userPath } = getExtensionPaths();
+  if (!fs.existsSync(userPath)) {
+    return { success: false, error: 'Extension not found' };
+  }
+  shell.openPath(userPath);
+  return { success: true };
+});
+
 ipcMain.handle('open-chrome-with-extension', async () => {
   const { userPath } = getExtensionPaths();
   if (!fs.existsSync(userPath)) {
@@ -1721,8 +1734,50 @@ app.whenReady().then(() => {
   startWebSocketServer();
   // Check for updates 3 seconds after launch (skip in dev)
   if (app.isPackaged) {
-    setTimeout(() => {
-      autoUpdater.checkForUpdates().catch(e => console.error('[updater] Check failed:', e.message));
+    setTimeout(async () => {
+      try {
+        // Tell renderer to show "Checking for updates..." popup
+        if (mainWindow) mainWindow.webContents.send('update-checking');
+        const remoteVersion = await new Promise((resolve, reject) => {
+          const url = `https://github.com/httpsmurphy/murph-aio/releases/latest/download/latest-mac.yml?t=${Date.now()}`;
+          const req = net.request({ url, redirect: 'follow' });
+          req.setHeader('Cache-Control', 'no-cache');
+          req.on('response', (res) => {
+            let data = '';
+            res.on('data', c => data += c.toString());
+            res.on('end', () => {
+              const match = data.match(/^version:\s*(.+)$/m);
+              resolve(match ? match[1].trim() : null);
+            });
+          });
+          req.on('error', reject);
+          req.end();
+        });
+        if (remoteVersion) {
+          const current = app.getVersion();
+          const rp = remoteVersion.split('.').map(Number);
+          const cp = current.split('.').map(Number);
+          let isNewer = false;
+          for (let i = 0; i < 3; i++) {
+            if ((rp[i] || 0) > (cp[i] || 0)) { isNewer = true; break; }
+            if ((rp[i] || 0) < (cp[i] || 0)) { break; }
+          }
+          if (mainWindow) {
+            if (isNewer) {
+              // Kick off autoUpdater so download is ready when user clicks Download
+              autoUpdater.checkForUpdates().catch(() => {});
+              mainWindow.webContents.send('update-available', { version: remoteVersion });
+              mainWindow.webContents.send('update-check-result', { update: true, version: remoteVersion });
+            } else {
+              mainWindow.webContents.send('update-check-result', { update: false });
+            }
+          }
+        } else {
+          if (mainWindow) mainWindow.webContents.send('update-check-result', { update: false });
+        }
+      } catch (e) {
+        if (mainWindow) mainWindow.webContents.send('update-check-result', { update: false, error: e.message });
+      }
     }, 3000);
   }
 });
