@@ -1,6 +1,6 @@
 {
   "name": "murph-aio",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "Murph AIO - Multi-site automated checkout platform",
   "main": "src/main.js",
   "author": "Murphy",
@@ -30,7 +30,7 @@
       "repo": "murph-aio"
     },
     "mac": {
-      "target": "dmg",
+      "target": ["dmg", "zip"],
       "category": "public.app-category.utilities"
     },
     "win": {
