@@ -1503,11 +1503,20 @@ ipcMain.handle('updater-check', async () => {
   try {
     const result = await autoUpdater.checkForUpdates();
     if (result && result.updateInfo) {
-      return { update: true, version: result.updateInfo.version };
+      // Compare versions — if remote == current, no update
+      const remote = result.updateInfo.version;
+      const current = app.getVersion();
+      if (remote === current) return { update: false };
+      return { update: true, version: remote };
     }
     return { update: false };
   } catch (e) {
     console.error('[updater] Manual check failed:', e.message);
+    // 404 or "no published releases" = treat as up-to-date, not an error
+    const msg = (e.message || '').toLowerCase();
+    if (msg.includes('404') || msg.includes('no published') || msg.includes('cannot find') || msg.includes('net::')) {
+      return { update: false };
+    }
     return { update: false, error: e.message };
   }
 });
@@ -1604,11 +1613,10 @@ ipcMain.handle('open-chrome-with-extension', async () => {
   }
 
   const { exec } = require('child_process');
-  const chromeProfilePath = path.join(app.getPath('userData'), 'murph-chrome-profile');
 
   let chromeCmd;
   if (process.platform === 'darwin') {
-    chromeCmd = `open -na "Google Chrome" --args --load-extension="${userPath}" --user-data-dir="${chromeProfilePath}"`;
+    chromeCmd = `open -na "Google Chrome" --args --load-extension="${userPath}"`;
   } else if (process.platform === 'win32') {
     // Check common Chrome install paths on Windows
     const chromePaths = [
@@ -1620,9 +1628,9 @@ ipcMain.handle('open-chrome-with-extension', async () => {
     if (!chromePath) {
       return { success: false, error: 'Chrome not found. Install Google Chrome and try again.' };
     }
-    chromeCmd = `"${chromePath}" --load-extension="${userPath}" --user-data-dir="${chromeProfilePath}"`;
+    chromeCmd = `"${chromePath}" --load-extension="${userPath}"`;
   } else {
-    chromeCmd = `google-chrome --load-extension="${userPath}" --user-data-dir="${chromeProfilePath}"`;
+    chromeCmd = `google-chrome --load-extension="${userPath}"`;
   }
 
   return new Promise((resolve) => {
