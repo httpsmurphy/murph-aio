@@ -1504,23 +1504,29 @@ autoUpdater.on('error', (err) => {
 });
 
 ipcMain.handle('updater-check', async () => {
-  const fs = require('fs');
-  const debugPath = require('path').join(app.getPath('userData'), 'updater-debug.log');
   try {
-    const current = app.getVersion();
-    fs.writeFileSync(debugPath, `[${new Date().toISOString()}] Current: ${current}\n`);
+    // Clear HTTP cache before checking so we always get fresh data
+    if (mainWindow) {
+      await mainWindow.webContents.session.clearCache();
+    }
     const result = await autoUpdater.checkForUpdates();
-    fs.appendFileSync(debugPath, `Result: ${JSON.stringify(result?.updateInfo || 'no updateInfo')}\n`);
     if (result && result.updateInfo) {
       const remote = result.updateInfo.version;
-      fs.appendFileSync(debugPath, `Remote: ${remote}, Current: ${current}, Match: ${remote === current}\n`);
-      if (remote && remote !== current) {
+      const current = app.getVersion();
+      // Proper semver comparison — only offer update if remote is actually newer
+      const remoteParts = remote.split('.').map(Number);
+      const currentParts = current.split('.').map(Number);
+      let isNewer = false;
+      for (let i = 0; i < 3; i++) {
+        if ((remoteParts[i] || 0) > (currentParts[i] || 0)) { isNewer = true; break; }
+        if ((remoteParts[i] || 0) < (currentParts[i] || 0)) { break; }
+      }
+      if (isNewer) {
         return { update: true, version: remote };
       }
     }
     return { update: false };
   } catch (e) {
-    fs.appendFileSync(debugPath, `Error: ${e.message}\n${e.stack}\n`);
     return { update: false, error: e.message || 'Unknown error' };
   }
 });
