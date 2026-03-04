@@ -1531,7 +1531,12 @@ ipcMain.handle('updater-download', () => {
 });
 
 ipcMain.handle('updater-install', () => {
-  autoUpdater.quitAndInstall(false, true);
+  // Delay quitAndInstall so IPC can return first, then force quit
+  setTimeout(() => {
+    autoUpdater.quitAndInstall(false, true);
+    // Force exit if quitAndInstall doesn't kill the app (unsigned apps)
+    setTimeout(() => app.exit(0), 2000);
+  }, 500);
   return { ok: true };
 });
 
