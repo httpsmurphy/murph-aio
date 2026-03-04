@@ -1475,7 +1475,11 @@ ipcMain.handle('delete-proxy-group', (event, id) => {
 // AUTO-UPDATER (electron-updater + GitHub Releases)
 // ============================================================
 autoUpdater.autoDownload = false;
-autoUpdater.logger = { info: (...a) => console.log('[updater]', ...a), warn: (...a) => console.warn('[updater]', ...a), error: (...a) => console.error('[updater]', ...a) };
+autoUpdater.logger = {
+  info: (...a) => { try { console.log('[updater]', ...a); } catch (_) {} },
+  warn: (...a) => { try { console.warn('[updater]', ...a); } catch (_) {} },
+  error: (...a) => { try { console.error('[updater]', ...a); } catch (_) {} }
+};
 
 autoUpdater.on('update-available', (info) => {
   console.log('[updater] Update available:', info.version);
