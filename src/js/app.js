@@ -2821,6 +2821,9 @@ document.addEventListener('keydown', (e) => {
     document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
     editingProfileId = null;
     if (confirmResolve) { confirmOverlay.classList.remove('active'); confirmResolve(false); confirmResolve = null; }
+    // Close startup update popup if open
+    const startupPopup = document.getElementById('startupUpdateOverlay');
+    if (startupPopup && startupPopup.classList.contains('active')) startupPopup.classList.remove('active');
   }
 });
 
@@ -3023,6 +3026,22 @@ document.getElementById('extCopyPath')?.addEventListener('click', async () => {
     } catch (e) {
       console.error('[Extension] Copy failed:', e);
     }
+  }
+});
+
+// Open extension folder in Finder/Explorer
+document.getElementById('extOpenFolder')?.addEventListener('click', async () => {
+  const btn = document.getElementById('extOpenFolder');
+  const origText = btn.textContent;
+  btn.textContent = 'Opening...';
+  btn.disabled = true;
+  try {
+    await window.murphAPI.openExtensionFolder();
+    btn.textContent = 'Opened!';
+    setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 1500);
+  } catch (e) {
+    btn.textContent = origText;
+    btn.disabled = false;
   }
 });
 
@@ -3351,6 +3370,58 @@ document.getElementById('updateActionBtn')?.addEventListener('click', async () =
 document.getElementById('updateBannerClose')?.addEventListener('click', () => {
   const banner = document.getElementById('updateBanner');
   if (banner) banner.style.display = 'none';
+});
+
+// ============================================================
+// STARTUP UPDATE CHECK POPUP
+// ============================================================
+const startupOverlay = document.getElementById('startupUpdateOverlay');
+const startupContent = document.getElementById('startupUpdateContent');
+
+API.onUpdateChecking?.(() => {
+  if (startupOverlay) startupOverlay.classList.add('active');
+});
+
+API.onUpdateCheckResult?.((data) => {
+  if (!startupOverlay || !startupContent) return;
+  if (data.update) {
+    // Update available — show version + download button
+    startupContent.innerHTML = `
+      <div style="text-align:center;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;">Update Available!</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Version ${data.version} is ready to download.</div>
+        <div style="display:flex;gap:8px;justify-content:center;">
+          <button class="btn btn-ghost" id="startupUpdateDismiss">Later</button>
+          <button class="btn btn-primary" id="startupUpdateDownload">Download</button>
+        </div>
+      </div>`;
+    document.getElementById('startupUpdateDismiss')?.addEventListener('click', () => {
+      startupOverlay.classList.remove('active');
+    });
+    document.getElementById('startupUpdateDownload')?.addEventListener('click', async () => {
+      // Close popup, show banner, trigger download
+      startupOverlay.classList.remove('active');
+      const banner = document.getElementById('updateBanner');
+      const text = document.getElementById('updateBannerText');
+      const btn = document.getElementById('updateActionBtn');
+      if (banner) {
+        text.textContent = 'Downloading update...';
+        btn.textContent = '...';
+        btn.disabled = true;
+        banner.style.display = 'flex';
+      }
+      updateState = 'downloading';
+      await API.updaterDownload();
+    });
+  } else {
+    // No update — show tick and auto-close
+    startupContent.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+        <span style="font-size:14px;font-weight:600;color:var(--text);">You're up to date!</span>
+      </div>`;
+    setTimeout(() => { startupOverlay.classList.remove('active'); }, 2000);
+  }
 });
 
 // Manual "Check for Updates" button in Settings

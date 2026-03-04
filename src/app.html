@@ -491,7 +491,10 @@
                 <div class="settings-row-label">Extension Path</div>
                 <div class="settings-row-desc" id="extPath" style="word-break:break-all;font-family:monospace;font-size:11px;">Loading...</div>
               </div>
-              <button class="btn btn-secondary" id="extCopyPath">Copy</button>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-secondary" id="extCopyPath">Copy</button>
+                <button class="btn btn-ghost" id="extOpenFolder">Open Folder</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1208,6 +1211,18 @@
 
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- Startup update check popup -->
+<div class="confirm-overlay" id="startupUpdateOverlay">
+  <div class="confirm-box" style="width:340px;">
+    <div id="startupUpdateContent">
+      <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:8px;">
+        <svg class="spinner-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.2"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/></path></svg>
+        <span style="font-size:14px;font-weight:600;color:var(--text);">Checking for updates...</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Confirm dialog -->
 <div class="confirm-overlay" id="confirmOverlay">
