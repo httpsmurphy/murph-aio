@@ -3354,9 +3354,33 @@ document.getElementById('updateBannerClose')?.addEventListener('click', () => {
 });
 
 // Manual "Check for Updates" button in Settings
+let _updateState = 'idle'; // idle | checking | download | downloading | ready | installing
 document.getElementById('checkUpdateBtn')?.addEventListener('click', async () => {
   const btn = document.getElementById('checkUpdateBtn');
   const statusText = document.getElementById('updateStatusText');
+
+  if (_updateState === 'download') {
+    // Download the update
+    _updateState = 'downloading';
+    btn.disabled = true;
+    btn.textContent = 'Downloading...';
+    statusText.textContent = 'Downloading update — this may take a minute...';
+    await API.updaterDownload();
+    return;
+  }
+
+  if (_updateState === 'ready') {
+    // Install the update
+    _updateState = 'installing';
+    btn.disabled = true;
+    btn.textContent = 'Installing...';
+    statusText.textContent = 'Installing update — app will restart...';
+    await API.updaterInstall();
+    return;
+  }
+
+  // Check for updates
+  _updateState = 'checking';
   btn.disabled = true;
   btn.textContent = 'Checking...';
   statusText.textContent = 'Checking for updates...';
@@ -3364,18 +3388,12 @@ document.getElementById('checkUpdateBtn')?.addEventListener('click', async () =>
   try {
     const result = await API.updaterCheck();
     if (result.update) {
+      _updateState = 'download';
       statusText.textContent = `Update v${result.version} available!`;
       btn.textContent = 'Download';
       btn.disabled = false;
-      // Switch button to download mode
-      btn.onclick = async () => {
-        btn.disabled = true;
-        btn.textContent = 'Downloading...';
-        statusText.textContent = 'Downloading update — this may take a minute...';
-        await API.updaterDownload();
-        // Keep showing downloading state until onUpdateDownloaded fires
-      };
     } else if (result.error) {
+      _updateState = 'idle';
       statusText.textContent = `Update failed: ${result.error}`;
       btn.textContent = 'Retry';
       btn.disabled = false;
@@ -3383,12 +3401,14 @@ document.getElementById('checkUpdateBtn')?.addEventListener('click', async () =>
       statusText.textContent = 'You\'re on the latest version!';
       btn.textContent = 'Up to date';
       setTimeout(() => {
+        _updateState = 'idle';
         btn.textContent = 'Check for Updates';
         btn.disabled = false;
         statusText.textContent = 'Check for new versions of Murph AIO.';
       }, 3000);
     }
   } catch (e) {
+    _updateState = 'idle';
     statusText.textContent = 'Update check failed.';
     btn.textContent = 'Check for Updates';
     btn.disabled = false;
@@ -3397,17 +3417,12 @@ document.getElementById('checkUpdateBtn')?.addEventListener('click', async () =>
 
 // When update is downloaded via manual flow, update the settings button too
 API.onUpdateDownloaded?.(() => {
+  _updateState = 'ready';
   const btn = document.getElementById('checkUpdateBtn');
   const statusText = document.getElementById('updateStatusText');
   if (btn) {
     btn.textContent = 'Restart & Update';
     btn.disabled = false;
-    btn.onclick = async () => {
-      btn.disabled = true;
-      btn.textContent = 'Installing...';
-      statusText.textContent = 'Installing update — app will restart...';
-      await API.updaterInstall();
-    };
   }
   if (statusText) statusText.textContent = 'Update ready! Click to restart and apply.';
 });

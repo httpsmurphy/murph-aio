@@ -1505,25 +1505,40 @@ autoUpdater.on('error', (err) => {
 
 ipcMain.handle('updater-check', async () => {
   try {
-    // Clear HTTP cache before checking so we always get fresh data
-    if (mainWindow) {
-      await mainWindow.webContents.session.clearCache();
+    const current = app.getVersion();
+    // Use Electron net module — follows all redirects automatically, no caching
+    const { net } = require('electron');
+    const remote = await new Promise((resolve, reject) => {
+      const url = `https://github.com/httpsmurphy/murph-aio/releases/latest/download/latest-mac.yml?t=${Date.now()}`;
+      const req = net.request({ url, redirect: 'follow' });
+      req.setHeader('Cache-Control', 'no-cache');
+      req.on('response', (res) => {
+        let data = '';
+        res.on('data', c => data += c.toString());
+        res.on('end', () => {
+          const match = data.match(/^version:\s*(.+)$/m);
+          resolve(match ? match[1].trim() : null);
+        });
+      });
+      req.on('error', reject);
+      req.end();
+    });
+
+    if (!remote) return { update: false, error: 'Could not fetch version info' };
+
+    // Semver comparison
+    const remoteParts = remote.split('.').map(Number);
+    const currentParts = current.split('.').map(Number);
+    let isNewer = false;
+    for (let i = 0; i < 3; i++) {
+      if ((remoteParts[i] || 0) > (currentParts[i] || 0)) { isNewer = true; break; }
+      if ((remoteParts[i] || 0) < (currentParts[i] || 0)) { break; }
     }
-    const result = await autoUpdater.checkForUpdates();
-    if (result && result.updateInfo) {
-      const remote = result.updateInfo.version;
-      const current = app.getVersion();
-      // Proper semver comparison — only offer update if remote is actually newer
-      const remoteParts = remote.split('.').map(Number);
-      const currentParts = current.split('.').map(Number);
-      let isNewer = false;
-      for (let i = 0; i < 3; i++) {
-        if ((remoteParts[i] || 0) > (currentParts[i] || 0)) { isNewer = true; break; }
-        if ((remoteParts[i] || 0) < (currentParts[i] || 0)) { break; }
-      }
-      if (isNewer) {
-        return { update: true, version: remote };
-      }
+
+    if (isNewer) {
+      // Tell autoUpdater to check too (so download works), but we already know the answer
+      autoUpdater.checkForUpdates().catch(() => {});
+      return { update: true, version: remote };
     }
     return { update: false };
   } catch (e) {
