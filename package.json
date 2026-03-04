@@ -1,6 +1,6 @@
 {
   "name": "murph-aio",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "Murph AIO - Multi-site automated checkout platform",
   "main": "src/main.js",
   "author": "Murphy",
