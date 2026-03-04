@@ -1563,7 +1563,15 @@ ipcMain.handle('updater-install', async () => {
 
   const cacheDir = path.join(app.getPath('home'), 'Library', 'Caches', 'murph-aio-updater');
   const zipPath = path.join(cacheDir, 'update.zip');
-  const appPath = path.dirname(path.dirname(path.dirname(path.dirname(process.execPath)))); // up to .app
+  // process.execPath = /Applications/Murph AIO.app/Contents/MacOS/Murph AIO
+  // We need 3 dirname calls to get to the .app bundle (NOT 4 — that would be /Applications!)
+  const appPath = path.dirname(path.dirname(path.dirname(process.execPath)));
+
+  // Safety: never allow deleting a root-level directory
+  if (!appPath.endsWith('.app')) {
+    console.error('[updater] SAFETY: appPath does not end with .app, aborting!', appPath);
+    return { ok: false, error: 'Invalid app path — update aborted for safety' };
+  }
 
   if (!fs.existsSync(zipPath)) {
     return { ok: false, error: 'Update zip not found' };
