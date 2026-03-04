@@ -3375,7 +3375,7 @@ document.getElementById('checkUpdateBtn')?.addEventListener('click', async () =>
         await API.updaterDownload();
       };
     } else if (result.error) {
-      statusText.textContent = 'Update check failed — check your internet.';
+      statusText.textContent = `Update failed: ${result.error}`;
       btn.textContent = 'Retry';
       btn.disabled = false;
     } else {
