@@ -67,9 +67,13 @@ function startWebSocketServer() {
 }
 
 function sendToExtension(msg) {
-  if (extensionSocket && extensionSocket.readyState === 1) {
-    extensionSocket.send(JSON.stringify(msg));
-    return true;
+  try {
+    if (extensionSocket && extensionSocket.readyState === 1) {
+      extensionSocket.send(JSON.stringify(msg));
+      return true;
+    }
+  } catch (e) {
+    console.error('[ws] Failed to send message:', e.message);
   }
   return false;
 }
@@ -284,12 +288,16 @@ ipcMain.handle('check-key', async () => {
 
 ipcMain.handle('deactivate-key', () => {
   store.delete('licenseKey');
-  mainWindow.loadFile(path.join(__dirname, 'activation.html'));
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.loadFile(path.join(__dirname, 'activation.html'));
+  }
   return { success: true };
 });
 
 ipcMain.handle('go-app', () => {
-  mainWindow.loadFile(path.join(__dirname, 'app.html'));
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.loadFile(path.join(__dirname, 'app.html'));
+  }
 });
 
 // --- IPC: Profile management ---

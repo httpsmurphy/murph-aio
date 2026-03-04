@@ -543,26 +543,63 @@
     if (!continueBtn) throw new Error('Continue button not found on delivery page');
 
     console.log(`${TAG} Delivery continue btn found:`, continueBtn.tagName, continueBtn.className, continueBtn.textContent.trim().substring(0, 30));
-    humanClick(continueBtn);
-    await randomDelay(50, 100);
-    try { continueBtn.click(); } catch (e) {}
-    await randomDelay(100, 200);
-    // Focus + Enter fallback for React buttons
-    try {
-      continueBtn.focus();
-      continueBtn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-      continueBtn.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-      continueBtn.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-    } catch (e) {}
-    try {
-      const reactKey = Object.keys(continueBtn).find(k => k.startsWith('__reactProps$') || k.startsWith('__reactFiber$'));
-      if (reactKey && continueBtn[reactKey] && continueBtn[reactKey].onClick) {
-        console.log(`${TAG} Triggering React onClick directly`);
-        continueBtn[reactKey].onClick({ preventDefault: () => {}, stopPropagation: () => {} });
+
+    // Try clicking up to 3 times with a 4s wait for navigation between attempts
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const urlBefore = window.location.href;
+      console.log(`${TAG} Delivery continue click attempt ${attempt}/3`);
+
+      humanClick(continueBtn);
+      await randomDelay(50, 100);
+      try { continueBtn.click(); } catch (e) {}
+      await randomDelay(100, 200);
+      // Focus + Enter fallback for React buttons
+      try {
+        continueBtn.focus();
+        continueBtn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        continueBtn.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        continueBtn.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+      } catch (e) {}
+      try {
+        const reactKey = Object.keys(continueBtn).find(k => k.startsWith('__reactProps$') || k.startsWith('__reactFiber$'));
+        if (reactKey && continueBtn[reactKey] && continueBtn[reactKey].onClick) {
+          console.log(`${TAG} Triggering React onClick directly`);
+          continueBtn[reactKey].onClick({ preventDefault: () => {}, stopPropagation: () => {} });
+        }
+      } catch (e) {}
+
+      // Wait up to 4s for URL to change (means navigation happened)
+      const clickTime = Date.now();
+      while (Date.now() - clickTime < 4000) {
+        await new Promise(r => setTimeout(r, 300));
+        if (window.location.href !== urlBefore || detectPage() !== 'delivery') {
+          console.log(`${TAG} Delivery: navigation detected after attempt ${attempt}`);
+          sendStatus('delivery', 'Delivery selected...');
+          return { action: 'wait-navigation' };
+        }
       }
-    } catch (e) {}
-    sendStatus('delivery', 'Delivery selected...');
-    return { action: 'wait-navigation' };
+
+      // Check for validation errors on the page (e.g. "please select a delivery method")
+      const errorEl = document.querySelector('[role="alert"], [data-testid*="error"], [class*="error" i]');
+      if (errorEl && errorEl.textContent.trim()) {
+        console.log(`${TAG} Delivery page error: ${errorEl.textContent.trim().substring(0, 100)}`);
+        sendStatus('delivery', 'Error: ' + errorEl.textContent.trim().substring(0, 80));
+      }
+
+      if (attempt < 3) {
+        console.log(`${TAG} Delivery: URL unchanged after click, retrying...`);
+        sendStatus('delivery', `Click didn't navigate, retrying (${attempt}/3)...`);
+        // Re-find button in case DOM re-rendered
+        const refreshedBtn = Array.from(document.querySelectorAll('button')).find(
+          b => /continue/i.test(b.textContent)
+        );
+        if (refreshedBtn) continueBtn = refreshedBtn;
+        await randomDelay(500, 1000);
+      }
+    }
+
+    // All 3 attempts failed
+    throw new Error('Delivery continue button clicked 3 times but page did not navigate');
   }
 
   async function handleClickAndCollect(config) {
@@ -745,28 +782,52 @@
     if (!continueBtn) throw new Error('Payment continue button not found');
 
     console.log(`${TAG} Payment continue btn found:`, continueBtn.tagName, continueBtn.className, continueBtn.textContent.trim().substring(0, 30));
-    humanClick(continueBtn);
-    await randomDelay(50, 100);
-    // Native click fallback
-    try { continueBtn.click(); } catch (e) {}
-    await randomDelay(100, 200);
-    // Focus + Enter fallback — most reliable for React buttons that ignore synthetic clicks
-    try {
-      continueBtn.focus();
-      continueBtn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-      continueBtn.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-      continueBtn.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-    } catch (e) {}
-    // React internal handler fallback — trigger onClick from React's fiber props
-    try {
-      const reactKey = Object.keys(continueBtn).find(k => k.startsWith('__reactProps$') || k.startsWith('__reactFiber$'));
-      if (reactKey && continueBtn[reactKey] && continueBtn[reactKey].onClick) {
-        console.log(`${TAG} Triggering React onClick directly`);
-        continueBtn[reactKey].onClick({ preventDefault: () => {}, stopPropagation: () => {} });
+
+    // Try clicking up to 3 times with a 4s wait for navigation between attempts
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const urlBefore = window.location.href;
+      console.log(`${TAG} Payment continue click attempt ${attempt}/3`);
+
+      humanClick(continueBtn);
+      await randomDelay(50, 100);
+      try { continueBtn.click(); } catch (e) {}
+      await randomDelay(100, 200);
+      try {
+        continueBtn.focus();
+        continueBtn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        continueBtn.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        continueBtn.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+      } catch (e) {}
+      try {
+        const reactKey = Object.keys(continueBtn).find(k => k.startsWith('__reactProps$') || k.startsWith('__reactFiber$'));
+        if (reactKey && continueBtn[reactKey] && continueBtn[reactKey].onClick) {
+          continueBtn[reactKey].onClick({ preventDefault: () => {}, stopPropagation: () => {} });
+        }
+      } catch (e) {}
+
+      // Wait up to 4s for URL to change
+      const clickTime = Date.now();
+      while (Date.now() - clickTime < 4000) {
+        await new Promise(r => setTimeout(r, 300));
+        if (window.location.href !== urlBefore || detectPage() !== 'payment') {
+          console.log(`${TAG} Payment: navigation detected after attempt ${attempt}`);
+          sendStatus('payment', 'Payment selected...');
+          return { action: 'wait-navigation' };
+        }
       }
-    } catch (e) {}
-    sendStatus('payment', 'Payment selected...');
-    return { action: 'wait-navigation' };
+
+      if (attempt < 3) {
+        console.log(`${TAG} Payment: URL unchanged after click, retrying...`);
+        sendStatus('payment', `Click didn't navigate, retrying (${attempt}/3)...`);
+        const refreshedBtn = Array.from(document.querySelectorAll('button')).find(
+          b => /continue|pay|place order/i.test(b.textContent)
+        );
+        if (refreshedBtn) continueBtn = refreshedBtn;
+        await randomDelay(500, 1000);
+      }
+    }
+
+    throw new Error('Payment continue button clicked 3 times but page did not navigate');
   }
 
   async function handleCCV(config) {
@@ -1144,9 +1205,10 @@
   window.addEventListener('popstate', onUrlChange);
 
   // Polling fallback for URL changes
-  setInterval(() => {
+  const _urlPollInterval = setInterval(() => {
     if (window.location.href !== lastUrl) onUrlChange();
   }, 500);
+  window.addEventListener('beforeunload', () => clearInterval(_urlPollInterval));
 
   function onUrlChange() {
     const newUrl = window.location.href;

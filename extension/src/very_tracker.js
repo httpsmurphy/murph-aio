@@ -26,10 +26,15 @@
   let pollIntervalId = null;
 
   // Load previously processed order refs from storage on startup
-  chrome.storage.local.get('veryProcessedRefs', (result) => {
-    if (result.veryProcessedRefs && Array.isArray(result.veryProcessedRefs)) {
-      processedOrderRefs = new Set(result.veryProcessedRefs);
-    }
+  let _refsLoaded = false;
+  const _refsReady = new Promise((resolve) => {
+    chrome.storage.local.get('veryProcessedRefs', (result) => {
+      if (result.veryProcessedRefs && Array.isArray(result.veryProcessedRefs)) {
+        processedOrderRefs = new Set(result.veryProcessedRefs);
+      }
+      _refsLoaded = true;
+      resolve();
+    });
   });
 
   function saveProcessedRefs() {
@@ -736,6 +741,7 @@
   // ========================= INITIAL RUN =========================
 
   async function init() {
+    await _refsReady; // Ensure processed refs are loaded before checking pages
     await ensureDiscordUsername();
     checkPage();
   }
