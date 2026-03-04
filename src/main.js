@@ -1504,17 +1504,23 @@ autoUpdater.on('error', (err) => {
 });
 
 ipcMain.handle('updater-check', async () => {
+  const fs = require('fs');
+  const debugPath = require('path').join(app.getPath('userData'), 'updater-debug.log');
   try {
+    const current = app.getVersion();
+    fs.writeFileSync(debugPath, `[${new Date().toISOString()}] Current: ${current}\n`);
     const result = await autoUpdater.checkForUpdates();
+    fs.appendFileSync(debugPath, `Result: ${JSON.stringify(result?.updateInfo || 'no updateInfo')}\n`);
     if (result && result.updateInfo) {
       const remote = result.updateInfo.version;
-      const current = app.getVersion();
+      fs.appendFileSync(debugPath, `Remote: ${remote}, Current: ${current}, Match: ${remote === current}\n`);
       if (remote && remote !== current) {
         return { update: true, version: remote };
       }
     }
     return { update: false };
   } catch (e) {
+    fs.appendFileSync(debugPath, `Error: ${e.message}\n${e.stack}\n`);
     return { update: false, error: e.message || 'Unknown error' };
   }
 });
