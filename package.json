@@ -1,0 +1,63 @@
+{
+  "name": "murph-aio",
+  "version": "2.0.0",
+  "description": "Murph AIO - Multi-site automated checkout platform",
+  "main": "src/main.js",
+  "author": "Murphy",
+  "scripts": {
+    "start": "electron .",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:all": "electron-builder --mac --win",
+    "publish:mac": "electron-builder --mac --publish always",
+    "publish:win": "electron-builder --win --publish always",
+    "publish:all": "electron-builder --mac --win --publish always"
+  },
+  "build": {
+    "appId": "com.murph.aio",
+    "productName": "Murph AIO",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "httpsmurphy",
+      "repo": "murph-aio",
+      "private": true
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false
+    },
+    "extraResources": [
+      {
+        "from": "extension",
+        "to": "extension",
+        "filter": ["**/*"]
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.3",
+    "uuid": "^11.0.0",
+    "ws": "^8.19.0"
+  }
+}

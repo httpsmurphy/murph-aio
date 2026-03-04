@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Murph AIO</title>
+<link rel="stylesheet" href="css/theme.css">
+<script src="../node_modules/chart.js/dist/chart.umd.js"></script>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo" data-nav="dashboard"></div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-indicator" id="sidebarIndicator"></div>
+      <button class="nav-btn active" data-nav="dashboard" data-tooltip="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button class="nav-btn" data-nav="tasks" data-tooltip="Tasks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </button>
+      <button class="nav-btn" data-nav="setup" data-tooltip="Profiles & Proxies">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+
+      <button class="nav-btn" data-nav="extension" data-tooltip="Extension">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </button>
+
+      <div class="nav-divider"></div>
+
+      <button class="nav-btn" data-nav="settings" data-tooltip="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+
+    <div class="sidebar-footer"></div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <span class="crumb-active" id="topbarTitle">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-bell-wrap">
+          <button class="topbar-bell" id="bellBtn" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="bell-badge" id="bellBadge">0</span>
+          </button>
+          <div class="toast-history-dropdown" id="toastHistoryDropdown">
+            <div class="toast-history-header">
+              <span class="toast-history-title">Notifications</span>
+              <button class="toast-history-clear" id="clearToastHistory">Clear</button>
+            </div>
+            <div class="toast-history-list" id="toastHistoryList">
+              <div class="toast-history-empty">No notifications yet.</div>
+            </div>
+          </div>
+        </div>
+        <span class="topbar-clock" id="clock"></span>
+        <div class="topbar-status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Ready</span>
+        </div>
+        <div class="topbar-extension-status" id="extensionStatus" title="Chrome Extension Status">
+          <span class="ext-dot disconnected" id="extDot"></span>
+          <span class="ext-label" id="extLabel">Ext</span>
+        </div>
+        <span class="topbar-key" id="topbarKey"></span>
+      </div>
+    </div>
+
+    <!-- CONTENT PAGES -->
+    <div class="content">
+
+      <!-- UPDATE BANNER -->
+      <div class="update-banner" id="updateBanner" style="display:none;">
+        <span class="update-banner-text" id="updateBannerText">A new version is available!</span>
+        <button class="btn btn-small btn-primary" id="updateActionBtn">Download</button>
+        <button class="update-banner-close" id="updateBannerClose">&times;</button>
+      </div>
+
+      <!-- ========== DASHBOARD ========== -->
+      <div class="page active" id="page-dashboard">
+        <div class="section-header">
+          <div>
+            <div class="section-title" id="greeting">Welcome back</div>
+            <div class="section-subtitle">Here's your overview.</div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            <div class="stat-label">Tasks Run</div>
+            <div class="stat-value" id="statTasksRun">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+            <div class="stat-label">Items Added</div>
+            <div class="stat-value green" id="statItems">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div class="stat-label">Checkouts</div>
+            <div class="stat-value orange" id="statCheckouts">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+            <div class="stat-label">Success Rate</div>
+            <div class="stat-value" id="statSuccessRate">&mdash;</div>
+          </div>
+        </div>
+
+        <!-- CHECKOUT GRAPH -->
+        <div class="dashboard-panel" style="margin-bottom:16px;">
+          <div class="panel-header">
+            <div class="panel-title">Checkout Activity</div>
+            <span class="panel-subtitle" id="chartPeriodLabel">Last 7 days</span>
+          </div>
+          <div class="panel-content" style="padding:12px 16px 8px;">
+            <canvas id="checkoutChart" height="140"></canvas>
+          </div>
+        </div>
+
+        <!-- TWO-COLUMN: ACTIVE TASKS + CHECKOUT LOG -->
+        <div class="dashboard-grid">
+          <div class="dashboard-panel">
+            <div class="panel-header">
+              <div class="panel-title">Active Tasks</div>
+              <button class="panel-link" id="dashViewAllTasks">View All</button>
+            </div>
+            <div class="panel-content" id="dashActiveTasks">
+              <div class="empty-state-mini">No tasks running.</div>
+            </div>
+          </div>
+          <div class="dashboard-panel">
+            <div class="panel-header">
+              <div class="panel-title">Checkout Log</div>
+            </div>
+            <div class="panel-content" id="dashCheckoutLog">
+              <div class="empty-state-mini">No checkout attempts yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SESSION STATS -->
+        <div class="session-stats-row" id="sessionStatsRow">
+          <div class="session-stat">
+            <span class="session-stat-label">Session Tasks</span>
+            <span class="session-stat-value" id="sessionTasksRun">0</span>
+          </div>
+          <div class="session-stat">
+            <span class="pulse-dot"></span><span class="session-stat-label">Uptime</span>
+            <span class="session-stat-value" id="sessionUptime">0m</span>
+          </div>
+          <div class="session-stat">
+            <span class="session-stat-label">Session Errors</span>
+            <span class="session-stat-value" id="sessionErrors">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== TASKS ========== -->
+      <div class="page" id="page-tasks">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Tasks</div>
+            <div class="section-subtitle" id="taskModuleSubtitle">Freemans &mdash; Bulk Add</div>
+          </div>
+        </div>
+
+        <!-- MODULE TABS -->
+        <div class="module-tabs" id="moduleTabs">
+          <button class="module-tab active" data-module="freemans">
+            <span class="module-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></span>
+            <span class="module-tab-name">Freemans</span>
+          </button>
+          <button class="module-tab" data-module="very">
+            <span class="module-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+            <span class="module-tab-name">Very</span>
+          </button>
+          <button class="module-tab disabled" data-module="jdwilliams" style="display:none;">
+            <span class="module-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></span>
+            <span class="module-tab-name">JD Williams</span>
+            <span class="module-tab-badge">SOON</span>
+          </button>
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="task-toolbar-row" id="taskToolbar">
+          <span class="task-toolbar-count" id="taskCount">0 tasks</span>
+          <label class="task-select-all-label">
+            <input type="checkbox" id="bulkSelectAll"> Select All
+          </label>
+          <div class="toolbar-spacer"></div>
+          <button class="btn btn-primary btn-small" id="startAllBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start All</button>
+          <button class="btn btn-ghost btn-small" id="stopAllBtn"><svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> Stop All</button>
+          <button class="btn btn-accent btn-small" id="createTaskBtn">+ New Task</button>
+          <div class="kebab-wrap">
+            <button class="btn btn-ghost btn-small kebab-btn" id="kebabBtn" title="More actions">&#8942;</button>
+            <div class="kebab-menu" id="kebabMenu" style="display:none;">
+              <button class="kebab-item" id="pauseQueueBtn">Pause Queue</button>
+              <button class="kebab-item" id="resumeQueueBtn">Resume Queue</button>
+              <div class="kebab-divider"></div>
+              <button class="kebab-item kebab-danger" id="clearTasksBtn">Clear All Tasks</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASK LIST (full width — Freemans) -->
+        <div class="tasks-scroll" id="tasksScroll">
+          <div id="tasksList">
+            <div class="empty-state" id="tasksEmpty">
+              <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
+              <div class="empty-state-text">No tasks yet. Click <strong>+ New Task</strong> to get started.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== VERY WORKSPACE ========== -->
+        <div id="veryWorkspace" class="very-workspace" style="display:none;">
+
+          <!-- TOP CONFIG BAR -->
+          <div class="very-config-bar">
+            <div class="very-config-left">
+              <div class="very-config-item">
+                <label class="very-config-label">Account</label>
+                <select class="form-input very-config-select" id="veryAccount">
+                  <option value="">Select profile...</option>
+                </select>
+              </div>
+              <div class="very-config-item">
+                <label class="very-config-label">Qty</label>
+                <input type="number" class="form-input very-config-qty" id="veryGlobalQty" min="1" max="999" value="1">
+              </div>
+              <div class="very-config-item">
+                <label class="very-config-label">Delivery</label>
+                <select class="form-input very-config-select" id="veryDelivery">
+                  <option value="standard">Standard</option>
+                  <option value="nextday">Next Day</option>
+                  <option value="click-and-collect">Click & Collect</option>
+                </select>
+              </div>
+              <!-- C&C postcode removed — Very auto-fills from account -->
+              <div class="very-config-item">
+                <label class="very-config-label">Payment</label>
+                <select class="form-input very-config-select" id="veryPayment">
+                  <option value="card">Saved Card</option>
+                  <option value="verypay">Very Pay</option>
+                </select>
+              </div>
+            </div>
+            <div class="very-config-right">
+              <label class="very-trial-toggle" title="Trial Run — goes through checkout but does NOT pay">
+                <input type="checkbox" id="veryTrialRun" checked>
+                <span class="very-trial-label">Trial</span>
+              </label>
+              <button class="btn btn-primary very-start-btn" id="veryStartAllBtn" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start
+              </button>
+              <button class="btn btn-ghost very-stop-btn" id="veryStopAllBtn" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> Stop
+              </button>
+            </div>
+          </div>
+
+          <!-- MAIN CONTENT: task zone + link panel -->
+          <div class="very-main">
+
+            <!-- CENTER: Drop Zone / Task Area -->
+            <div class="very-center">
+              <div class="very-drop-zone-header" id="veryDropHeader" style="display:none;">
+                <span class="very-drop-zone-count" id="veryTaskCount">0 items</span>
+                <button class="btn btn-ghost btn-small very-clear-btn" id="veryClearAllBtn">Clear All</button>
+              </div>
+              <div class="very-drop-zone" id="veryDropZone">
+                <div class="very-drop-empty" id="veryDropEmpty">
+                  <div class="very-drop-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </div>
+                  <div class="very-drop-text">Drag cart links here</div>
+                  <div class="very-drop-hint">Drop links from the right panel to queue checkouts</div>
+                </div>
+
+                <!-- Task cards get inserted here dynamically -->
+                <div class="very-task-list" id="veryTaskList"></div>
+              </div>
+            </div>
+
+            <!-- RIGHT PANEL: Cart Links -->
+            <div class="very-link-panel">
+              <div class="very-link-panel-header">
+                <span class="very-link-panel-title">Cart Links</span>
+                <span class="very-link-count" id="veryLinkCount">0</span>
+              </div>
+
+              <!-- Group tabs -->
+              <div class="very-link-group-strip" id="veryGroupStrip">
+                <button class="very-link-group-arrow" id="veryGroupScrollLeft" style="display:none;" title="Scroll left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <div class="very-link-group-scroll-area" id="veryGroupScrollArea">
+                  <!-- Tabs rendered dynamically -->
+                </div>
+                <button class="very-link-group-arrow" id="veryGroupScrollRight" style="display:none;" title="Scroll right">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button class="very-link-group-add" id="veryGroupAddBtn" title="New group">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <div style="position:relative;">
+                  <button class="very-link-group-settings" id="veryGroupSettingsBtn" title="Group settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                  </button>
+                  <div class="very-link-group-menu" id="veryGroupMenu" style="display:none;">
+                    <button class="very-link-group-menu-item" id="veryGroupRenameBtn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      Rename
+                    </button>
+                    <button class="very-link-group-menu-item danger" id="veryGroupDeleteBtn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                      Delete Group
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Link grid (compact pills) -->
+              <div class="very-link-grid" id="veryLinkList">
+                <div class="very-link-empty" id="veryLinkEmpty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="very-link-empty-icon"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  <span>No cart links yet</span>
+                </div>
+              </div>
+
+              <!-- Add link form (bottom) -->
+              <div class="very-link-form" id="veryLinkForm">
+                <input type="text" class="form-input very-link-input" id="veryLinkName" placeholder="Label (e.g. Air Max 90)" spellcheck="false">
+                <input type="text" class="form-input very-link-input" id="veryLinkUrl" placeholder="Stellar cart link..." spellcheck="false">
+                <button class="btn btn-accent very-link-add-btn" id="veryLinkAddBtn">+ Add Link</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTTOM: Progress Strip -->
+          <div class="very-progress-strip" id="veryProgressStrip">
+            <div class="very-progress-info">
+              <span class="very-progress-status" id="veryProgressStatus">Ready</span>
+              <span class="very-progress-stats" id="veryProgressStats"></span>
+            </div>
+            <div class="very-progress-track">
+              <div class="very-progress-bar" id="veryProgressBar"></div>
+            </div>
+            <div class="very-progress-right">
+              <span class="very-progress-count" id="veryProgressCount">0 / 0</span>
+              <span class="very-progress-timer" id="veryProgressTimer">00:00</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========== PROFILES ========== -->
+      <div class="page" id="page-setup">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Profiles & Proxies</div>
+            <div class="section-subtitle">Manage your checkout profiles and proxy configuration.</div>
+          </div>
+        </div>
+
+        <!-- SETUP SUB-NAV -->
+        <div class="setup-tabs">
+          <button class="setup-tab active" data-setup-tab="profiles">Profiles</button>
+          <button class="setup-tab" data-setup-tab="proxies">Proxies</button>
+        </div>
+
+        <!-- ===== PROFILES SECTION ===== -->
+        <div id="setup-profiles">
+          <div class="setup-section-toolbar">
+            <div class="profile-tabs">
+              <button class="module-tab active" data-profile-tab="login">Login Accounts</button>
+              <button class="module-tab" data-profile-tab="guest">Guest Profiles</button>
+            </div>
+            <div class="profile-actions-bar">
+              <button class="btn btn-ghost" id="importProfilesBtn">Import CSV</button>
+              <button class="btn btn-ghost" id="exportProfilesBtn">Export CSV</button>
+              <button class="btn btn-accent" id="createProfileBtn">+ New Profile</button>
+            </div>
+          </div>
+
+          <div class="info-banner" id="profileInfoBanner">
+            <svg class="info-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Profiles are available to all modules. Select a profile when creating a task to enable auto-checkout.</span>
+            <button class="info-banner-close" id="closeProfileBanner">&times;</button>
+          </div>
+
+          <div class="search-bar" id="profileSearchWrap">
+            <svg class="search-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="search-bar-input" id="profileSearch" placeholder="Search profiles..." spellcheck="false">
+          </div>
+
+          <div class="profile-grid" id="profilesList">
+            <div class="empty-state" id="profilesEmpty">
+              <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+              <div class="empty-state-text">No profiles saved. Profiles are shared across all modules for auto-checkout.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== PROXIES SECTION ===== -->
+        <div id="setup-proxies" style="display:none;">
+          <div class="setup-section-toolbar">
+            <div>
+              <div class="settings-row-label" style="font-size:14px;font-weight:600;color:var(--text-bright);">Proxy Groups</div>
+              <div class="settings-row-desc" style="margin-top:2px;">Create named groups of proxies. One proxy per line (host:port or user:pass@host:port).</div>
+            </div>
+            <button class="btn btn-accent" id="addProxyGroupBtn">+ Add Group</button>
+          </div>
+
+          <div class="settings-row" style="margin-bottom:16px;">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Enable Proxies</div>
+              <div class="settings-row-desc">Rotate proxies across tasks and stock checks.</div>
+            </div>
+            <label class="toggle" id="settingProxyEnabled">
+              <input type="checkbox"><span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-row" style="margin-bottom:16px;">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Default Proxy Group</div>
+              <div class="settings-row-desc">Used when no group is specified on a task.</div>
+            </div>
+            <select class="form-input" id="settingDefaultProxyGroup" style="width:200px;">
+              <option value="">None</option>
+            </select>
+          </div>
+
+          <div id="proxyGroupsList" style="width:100%;"></div>
+
+          <div class="settings-row" style="margin-top:16px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-small btn-ghost" id="testProxyBtn">Test Proxy</button>
+              <span id="proxyTestResult" style="font-size:11px;color:var(--text-muted);"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Log page removed in v2.0 — now embedded in Settings -->
+
+      <!-- ========== EXTENSION ========== -->
+      <div class="page" id="page-extension">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Extension</div>
+            <div class="section-subtitle">Manage the Murph AIO Chrome extension.</div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+            <span class="settings-card-title">Chrome Extension</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Status</div>
+                <div class="settings-row-desc" id="extStatusText">Checking...</div>
+              </div>
+              <div id="extStatusDot" style="width:12px;height:12px;border-radius:50%;background:#666;"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Open Chrome</div>
+                <div class="settings-row-desc">Launch Chrome with the Murph AIO extension pre-loaded.</div>
+              </div>
+              <button class="btn btn-primary" id="extOpenChrome">Open Chrome</button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Extension Path</div>
+                <div class="settings-row-desc" id="extPath" style="word-break:break-all;font-family:monospace;font-size:11px;">Loading...</div>
+              </div>
+              <button class="btn btn-secondary" id="extCopyPath">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+            <span class="settings-card-title">Setup Guide</span>
+          </div>
+          <div class="settings-card-body">
+            <div style="padding:8px 0;color:var(--text-secondary);font-size:13px;line-height:1.6;">
+              <p><strong>Option A &mdash; One Click (Recommended)</strong></p>
+              <ol style="margin:8px 0 16px 20px;">
+                <li>Click <strong>"Open Chrome"</strong> above to launch Chrome with the extension loaded.</li>
+                <li>Pin the Murph AIO extension in Chrome's toolbar.</li>
+                <li>You're ready to go &mdash; create tasks in this app and they'll run automatically.</li>
+              </ol>
+              <p><strong>Option B &mdash; Manual Load</strong></p>
+              <ol style="margin:8px 0 0 20px;">
+                <li>Copy the extension path above.</li>
+                <li>Open Chrome and go to <code>chrome://extensions</code>.</li>
+                <li>Enable <strong>Developer mode</strong> (top right toggle).</li>
+                <li>Click <strong>"Load unpacked"</strong> and paste the path.</li>
+                <li>Make sure Murph AIO is running when you use Chrome.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SETTINGS ========== -->
+      <div class="page" id="page-settings">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Settings</div>
+            <div class="section-subtitle">Manage your license and preferences.</div>
+          </div>
+        </div>
+
+        <!-- CUSTOMISATION -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
+            <span class="settings-card-title">Customisation</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Display Name</div>
+                <div class="settings-row-desc">Your name shown in the greeting.</div>
+              </div>
+              <input type="text" class="form-input settings-input-wide" id="settingUsername" placeholder="Enter your name...">
+            </div>
+            <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:12px;">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Avatar</div>
+                <div class="settings-row-desc">Pick an icon for the sidebar.</div>
+              </div>
+              <div class="avatar-picker" id="avatarPicker"></div>
+            </div>
+            <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:12px;">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Accent Colour</div>
+                <div class="settings-row-desc">Customise the primary colour across the app.</div>
+              </div>
+              <div class="colour-picker" id="colourPicker"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LICENSE -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span>
+            <span class="settings-card-title">License</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">License Key</div>
+                <div class="settings-row-desc" id="settingsKey">Loading...</div>
+              </div>
+              <button class="btn btn-danger" id="settingsDeactivate">Deactivate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASKS -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>
+            <span class="settings-card-title">Tasks</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Default Quantity</div>
+                <div class="settings-row-desc">Default quantity when creating new tasks.</div>
+              </div>
+              <input type="number" class="form-input settings-input-sm" id="settingDefaultQty" min="1" max="999" value="20">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Task Delay (ms)</div>
+                <div class="settings-row-desc">Delay between tasks when using Start All.</div>
+              </div>
+              <input type="number" class="form-input settings-input-sm" id="settingTaskDelay" min="100" max="5000" step="100" value="300">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Max Concurrent Tasks</div>
+                <div class="settings-row-desc">Maximum tasks running simultaneously.</div>
+              </div>
+              <input type="number" class="form-input settings-input-sm" id="settingMaxConcurrent" min="1" max="10" value="3">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Max Retries</div>
+                <div class="settings-row-desc">Auto-retry failed tasks up to this many times.</div>
+              </div>
+              <input type="number" class="form-input settings-input-sm" id="settingMaxRetries" min="0" max="10" value="3">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Retry Delay (ms)</div>
+                <div class="settings-row-desc">Wait time between retry attempts.</div>
+              </div>
+              <input type="number" class="form-input settings-input-sm" id="settingRetryDelay" min="1000" max="30000" step="1000" value="5000">
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Auto-clear Completed</div>
+                <div class="settings-row-desc">Automatically remove tasks after they complete.</div>
+              </div>
+              <label class="toggle" id="settingAutoClear">
+                <input type="checkbox"><span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Dry Run Mode</div>
+                <div class="settings-row-desc">Default state for the Trial Run toggle. When on, checkouts stop before payment.</div>
+              </div>
+              <label class="toggle" id="settingDryRun">
+                <input type="checkbox" checked><span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Debug Mode</div>
+                <div class="settings-row-desc">Show the checkout browser window for debugging.</div>
+              </div>
+              <label class="toggle" id="settingDebugMode">
+                <input type="checkbox"><span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+            <span class="settings-card-title">Notifications</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Sound Notifications</div>
+                <div class="settings-row-desc">Play a sound on task complete or failure.</div>
+              </div>
+              <label class="toggle" id="settingNotifSound">
+                <input type="checkbox" checked><span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Desktop Notifications</div>
+                <div class="settings-row-desc">Show native OS notifications on task complete or failure.</div>
+              </div>
+              <label class="toggle" id="settingDesktopNotif">
+                <input type="checkbox" checked><span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Discord Webhook URL</div>
+                <div class="settings-row-desc">Send checkout notifications to a Discord channel.</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" class="form-input settings-input-wide" id="settingWebhookUrl" placeholder="https://discord.com/api/webhooks/..." spellcheck="false">
+                <button class="btn btn-small" id="testWebhookBtn" style="white-space:nowrap;">Test</button>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Checkout Sound</div>
+                <div class="settings-row-desc">Custom sound on successful checkout. Drop .mp3/.wav files into the sounds folder.</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select class="form-input" id="settingCheckoutSound" style="min-width:150px;">
+                  <option value="">Default chime</option>
+                </select>
+                <button class="btn btn-ghost btn-small" id="openSoundsFolderBtn" style="white-space:nowrap;">Open Folder</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- APPLICATION -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+            <span class="settings-card-title">Application</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Version</div>
+                <div class="settings-row-desc">Murph AIO v2.0</div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Platform</div>
+                <div class="settings-row-desc" id="settingsPlatform">Loading...</div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Updates</div>
+                <div class="settings-row-desc" id="updateStatusText">Check for new versions of Murph AIO.</div>
+              </div>
+              <button class="btn btn-primary" id="checkUpdateBtn" style="width:auto;padding:8px 16px;">Check for Updates</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATA -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+            <span class="settings-card-title">Data</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Export All Data</div>
+                <div class="settings-row-desc">Download a backup of all settings, profiles, tasks, and logs.</div>
+              </div>
+              <button class="btn btn-ghost" id="settingsExportData">Export</button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Import Data</div>
+                <div class="settings-row-desc">Restore from a previously exported backup file.</div>
+              </div>
+              <button class="btn btn-ghost" id="settingsImportData">Import</button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Reset Stats</div>
+                <div class="settings-row-desc">Clear all task run statistics.</div>
+              </div>
+              <button class="btn btn-ghost" id="settingsResetStats">Reset</button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="settings-row-label">Clear Sessions</div>
+                <div class="settings-row-desc">Clear saved login sessions for all modules.</div>
+              </div>
+              <button class="btn btn-ghost btn-danger" id="settingsClearSessions">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ERROR LOG (embedded, collapsible) -->
+        <div class="settings-card settings-error-log">
+          <div class="settings-card-header collapsible-header" id="errorLogToggle">
+            <span class="settings-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <span class="settings-card-title">Error Log</span>
+            <span class="error-count-badge" id="errorCountBadge" style="display:none;margin-left:8px;">0</span>
+            <span class="collapsible-chevron">&#9662;</span>
+          </div>
+          <div class="collapsible-body" id="errorLogBody" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div class="error-log-filters">
+                <button class="error-filter-btn active" data-error-filter="all">All</button>
+                <button class="error-filter-btn" data-error-filter="error">Errors</button>
+                <button class="error-filter-btn" data-error-filter="warning">Warnings</button>
+                <button class="error-filter-btn" data-error-filter="debug">Debug</button>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-small btn-ghost" id="exportErrorLogBtn">Export</button>
+                <button class="btn btn-small btn-ghost btn-danger" id="clearErrorLogBtn">Clear</button>
+              </div>
+            </div>
+            <div class="log-container" style="max-height:400px;">
+              <div class="log-scroll" id="errorLogScroll">
+                <div class="empty-state" id="errorLogEmpty">
+                  <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                  <div class="empty-state-text">No errors logged.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Monitors page removed — monitors now live in Tasks page -->
+
+    </div><!-- /content -->
+
+  </div><!-- /main-area -->
+</div><!-- /app-layout -->
+
+<!-- Task Create/Edit Modal (v2.0) -->
+<div class="modal-overlay" id="taskModalOverlay">
+  <div class="modal" style="width:500px;max-height:85vh;overflow-y:auto;">
+    <div class="modal-title" id="taskModalTitle">Create Task</div>
+
+    <!-- Task Type Toggle -->
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <div class="task-type-toggle">
+        <button class="type-toggle-btn active" data-type="checkout">Checkout</button>
+        <button class="type-toggle-btn" data-type="monitor">Monitor</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Product URL</label>
+      <input type="text" class="form-input" id="panelUrl" placeholder="https://www.freemans.com/products/..." spellcheck="false">
+    </div>
+
+    <!-- Checkout-only fields -->
+    <div id="panelCheckoutFields">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <input type="number" class="form-input" id="panelQty" min="1" max="999" value="20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delivery Method</label>
+          <select class="form-input" id="panelDelivery">
+            <option value="standard">Standard Delivery</option>
+            <option value="nextday">Next Day Delivery</option>
+            <option value="express">Express Delivery</option>
+            <option value="named">Named Day Delivery</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Very-specific fields (shown only when Very module is active) -->
+      <div id="panelVeryFields" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Payment Method</label>
+            <select class="form-input" id="panelPaymentMethod">
+              <option value="card">Card (Saved)</option>
+              <option value="very-pay">Very Pay (BNPL)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Checkouts</label>
+            <input type="number" class="form-input" id="panelCheckoutCount" min="1" max="50" value="1" title="Number of times to run this checkout">
+          </div>
+        </div>
+        <div id="panelCCFields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">C&C Postcode</label>
+              <input type="text" class="form-input" id="panelCCPostcode" placeholder="CM18 7NH">
+            </div>
+            <div class="form-group">
+              <label class="form-label">C&C Store (optional)</label>
+              <input type="text" class="form-input" id="panelCCStore" placeholder="e.g. Morrisons">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Promo Code (optional)</label>
+          <input type="text" class="form-input" id="panelPromoCode" placeholder="Enter promo code...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Monitor-only fields -->
+    <div id="panelMonitorFields" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Monitor Mode</label>
+        <div class="task-type-toggle">
+          <button class="type-toggle-btn active" data-monitor-mode="single" type="button">Single Product</button>
+          <button class="type-toggle-btn" data-monitor-mode="category" type="button" disabled style="opacity:0.35;cursor:not-allowed;">
+            Category / Feed
+            <span style="font-size:9px;color:var(--accent);margin-left:4px;font-weight:700;">SOON</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Name</label>
+        <input type="text" class="form-input" id="panelMonitorName" placeholder="e.g. Nike Air Max 90">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Check Interval</label>
+          <select class="form-input" id="panelMonitorInterval">
+            <option value="15000">Every 15s</option>
+            <option value="30000" selected>Every 30s</option>
+            <option value="60000">Every 1m</option>
+            <option value="300000">Every 5m</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <label class="toggle" style="margin-bottom:10px;" title="Auto-create checkout task when stock is found">
+            <input type="checkbox" id="panelMonitorAutoRun"><span class="toggle-slider"></span>
+            <span style="font-size:11px;color:var(--text-secondary);margin-left:6px;white-space:nowrap;">Auto-run</span>
+          </label>
+        </div>
+      </div>
+      <div id="panelMonitorAutoRunFields" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Auto-run Qty</label>
+            <input type="number" class="form-input" id="panelMonitorQty" min="1" max="999" value="20">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Auto-run Profile</label>
+            <select class="form-input" id="panelMonitorProfile"><option value="">None</option></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Auto-run Delivery</label>
+          <select class="form-input" id="panelMonitorDelivery">
+            <option value="standard">Standard</option>
+            <option value="nextday">Next Day</option>
+            <option value="express">Express</option>
+            <option value="named">Named Day</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Selection (multi-select) -->
+    <div class="form-group">
+      <label class="form-label">Profile</label>
+      <div class="profile-multi-select" id="profileMultiSelect">
+        <div class="pms-display" id="pmsDisplay">
+          <span class="pms-placeholder">Select profile(s)...</span>
+        </div>
+        <div class="pms-dropdown" id="pmsDropdown" style="display:none;">
+          <div class="pms-options" id="pmsOptions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proxy Group -->
+    <div class="form-group">
+      <label class="form-label">Proxy Group</label>
+      <select class="form-input" id="panelProxyGroup">
+        <option value="">None (Direct)</option>
+      </select>
+    </div>
+
+    <!-- Schedule (checkout only) -->
+    <div id="panelScheduleGroup">
+      <div class="form-group">
+        <label class="form-label">Schedule</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select class="form-input" id="panelScheduleType" style="flex:1;min-width:110px;">
+            <option value="">No Schedule</option>
+            <option value="once">One-time</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select>
+          <input type="time" class="form-input" id="panelScheduleTime" style="width:100px;display:none;">
+          <input type="date" class="form-input" id="panelScheduleDate" style="width:130px;display:none;">
+        </div>
+        <div id="panelScheduleDays" style="display:none;margin-top:8px;" class="schedule-days-row">
+          <label class="day-check"><input type="checkbox" value="1"><span>Mon</span></label>
+          <label class="day-check"><input type="checkbox" value="2"><span>Tue</span></label>
+          <label class="day-check"><input type="checkbox" value="3"><span>Wed</span></label>
+          <label class="day-check"><input type="checkbox" value="4"><span>Thu</span></label>
+          <label class="day-check"><input type="checkbox" value="5"><span>Fri</span></label>
+          <label class="day-check"><input type="checkbox" value="6"><span>Sat</span></label>
+          <label class="day-check"><input type="checkbox" value="0"><span>Sun</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="taskModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="taskModalSaveBtn">Create Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Profile Modal -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal" style="width:540px;max-height:85vh;overflow-y:auto;">
+    <div class="modal-title">New Profile</div>
+
+    <!-- SITE SELECTOR -->
+    <div class="form-group">
+      <label class="form-label">Site</label>
+      <select class="form-input" id="profSite">
+        <option value="very">Very</option>
+        <option value="freemans">Freemans</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Profile Name</label>
+      <input type="text" class="form-input" id="profName" placeholder="e.g. Personal, Work...">
+    </div>
+    <input type="hidden" id="profExisting" value="true">
+
+    <!-- LOGIN FIELDS (email + password for login profiles) -->
+    <div id="profLoginFields">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="profEmail">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="profPassword">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Postcode</label>
+        <input type="text" class="form-input" id="profPostcode" placeholder="e.g. CM18 7NH">
+      </div>
+    </div>
+
+    <!-- GUEST FIELDS (contact, shipping, billing) -->
+    <div id="profGuestFields" style="display:none;">
+      <!-- Contact -->
+      <div class="form-section-divider">
+        <span class="form-section-label">Contact</span>
+        <div class="form-section-line"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="profGuestEmail" placeholder="For order confirmation">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" class="form-input" id="profGuestPhone" placeholder="07...">
+        </div>
+      </div>
+
+      <!-- Shipping -->
+      <div class="form-section-divider">
+        <span class="form-section-label">Shipping Information</span>
+        <div class="form-section-line"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input type="text" class="form-input" id="profShipFirst">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input type="text" class="form-input" id="profShipLast">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address Line 1</label>
+        <input type="text" class="form-input" id="profShipAddr1" placeholder="123 High Street">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address Line 2 / House Number</label>
+        <input type="text" class="form-input" id="profShipAddr2" placeholder="Flat 4B (optional)">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input type="text" class="form-input" id="profShipCity">
+        </div>
+        <div class="form-group">
+          <label class="form-label">County / State</label>
+          <input type="text" class="form-input" id="profShipCounty">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Postal Code</label>
+          <input type="text" class="form-input" id="profShipPostcode">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Country</label>
+          <select class="form-input" id="profShipCountry">
+            <option value="GB">United Kingdom</option>
+            <option value="IE">Ireland</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Billing -->
+      <div class="form-section-divider">
+        <span class="form-section-label">Billing Information</span>
+        <div class="form-section-line"></div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="form-label" style="margin-bottom:0;">Billing address same as shipping</span>
+        <label class="toggle">
+          <input type="checkbox" id="profBillingSame" checked><span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div id="profBillingFields" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-input" id="profBillFirst">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-input" id="profBillLast">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address Line 1</label>
+          <input type="text" class="form-input" id="profBillAddr1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address Line 2</label>
+          <input type="text" class="form-input" id="profBillAddr2">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <input type="text" class="form-input" id="profBillCity">
+          </div>
+          <div class="form-group">
+            <label class="form-label">County / State</label>
+            <input type="text" class="form-input" id="profBillCounty">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Postal Code</label>
+            <input type="text" class="form-input" id="profBillPostcode">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Country</label>
+            <select class="form-input" id="profBillCountry">
+              <option value="GB">United Kingdom</option>
+              <option value="IE">Ireland</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENT (shared by both login and guest) -->
+    <div class="form-section-divider">
+      <span class="form-section-label">Payment Details</span>
+      <div class="form-section-line"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cardholder Name</label>
+      <input type="text" class="form-input" id="profCardName" placeholder="Name on card">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2;">
+        <label class="form-label">Card Number</label>
+        <div class="card-number-wrap">
+          <input type="text" class="form-input" id="profCardNumber" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="off">
+          <button type="button" class="card-reveal-btn" id="cardRevealBtn">Show</button>
+        </div>
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Card Type</label>
+        <select class="form-input" id="profCardType">
+          <option value="visa">Visa</option>
+          <option value="mastercard">Mastercard</option>
+          <option value="amex">Amex</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Expiry (MM/YY)</label>
+        <input type="text" class="form-input" id="profExpiry" placeholder="MM/YY" maxlength="5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">CVV</label>
+        <input type="password" class="form-input" id="profCvv" placeholder="***" maxlength="4" inputmode="numeric" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="profModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="profModalSave">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for CSV import -->
+<input type="file" id="csvFileInput" accept=".csv" style="display:none">
+<!-- Hidden file input for data import -->
+<input type="file" id="importDataFileInput" accept=".json" style="display:none">
+
+<!-- Context Menu -->
+<div class="context-menu" id="contextMenu" style="display:none;"></div>
+
+<!-- Bulk Actions Bar -->
+<div class="bulk-actions-bar" id="bulkActionsBar">
+  <label class="bulk-select-all"><input type="checkbox" id="bulkSelectAll"> Select All</label>
+  <span class="bulk-count" id="bulkCount">0 selected</span>
+  <button class="btn btn-primary btn-small" id="bulkStartBtn">Start</button>
+  <button class="btn btn-ghost btn-small" id="bulkStopBtn">Stop</button>
+  <button class="btn btn-danger btn-small" id="bulkDeleteBtn">Delete</button>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Confirm dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmNo">Cancel</button>
+      <button class="btn btn-danger" id="confirmYes">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

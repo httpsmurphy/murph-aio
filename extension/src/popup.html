@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 340px;
+      min-height: 200px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f0f;
+      color: #e5e5e5;
+      font-size: 13px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #222;
+      background: #141414;
+    }
+    .header img { width: 28px; height: 28px; border-radius: 6px; }
+    .header-info { flex: 1; }
+    .header-title { font-weight: 600; font-size: 14px; color: #fff; }
+    .header-version { font-size: 11px; color: #666; }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #666;
+      flex-shrink: 0;
+    }
+    .status-dot.connected { background: #22c55e; }
+    .status-dot.disconnected { background: #f97316; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #222;
+      background: #141414;
+    }
+    .tab {
+      flex: 1;
+      padding: 9px 0;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+    .tab:hover { color: #999; }
+    .tab.active { color: #f97316; border-bottom-color: #f97316; }
+
+    /* Tab content */
+    .tab-content { display: none; padding: 14px 16px; }
+    .tab-content.active { display: block; }
+
+    /* Form elements */
+    .field { margin-bottom: 12px; }
+    .field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .field-input {
+      width: 100%;
+      padding: 8px 10px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: #e5e5e5;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field-input:focus { border-color: #f97316; }
+    .field-input::placeholder { color: #444; }
+
+    select.field-input {
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 9px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: #f97316;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #ea680c; }
+    .btn-primary:disabled { background: #3a3a3a; color: #666; cursor: not-allowed; }
+    .btn-secondary {
+      background: #1a1a1a;
+      color: #ccc;
+      border: 1px solid #2a2a2a;
+    }
+    .btn-secondary:hover { background: #222; }
+    .btn-small {
+      width: auto;
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    /* Status section */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: #1a1a1a;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .status-text { font-size: 12px; color: #888; }
+    .status-text.ok { color: #22c55e; }
+    .status-text.warn { color: #f97316; }
+
+    /* Order history */
+    .order-list { max-height: 280px; overflow-y: auto; }
+    .order-item {
+      padding: 10px 12px;
+      background: #1a1a1a;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      border-left: 3px solid #f97316;
+    }
+    .order-item .order-ref {
+      font-weight: 600;
+      font-size: 13px;
+      color: #fff;
+    }
+    .order-item .order-meta {
+      font-size: 11px;
+      color: #666;
+      margin-top: 3px;
+    }
+    .order-item .order-items {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+    }
+    .order-item.failed { border-left-color: #ef4444; }
+    .order-item.pending { border-left-color: #eab308; }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: #444;
+      font-size: 12px;
+    }
+
+    /* Row layout */
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 12px;
+      left: 16px;
+      right: 16px;
+      padding: 10px 14px;
+      background: #22c55e;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      transform: translateY(60px);
+      transition: transform 0.2s;
+      z-index: 100;
+    }
+    .toast.error { background: #ef4444; }
+    .toast.visible { transform: translateY(0); }
+
+    /* Saved indicator */
+    .saved-indicator {
+      font-size: 11px;
+      color: #22c55e;
+      margin-left: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .saved-indicator.show { opacity: 1; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="../assets/murphy.png" alt="Murph AIO">
+    <div class="header-info">
+      <div class="header-title">Murph AIO</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
+    <div class="status-dot" id="statusDot" title="Electron connection status"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="home">Home</button>
+    <button class="tab" data-tab="history">History</button>
+    <button class="tab" data-tab="settings">Settings</button>
+  </div>
+
+  <!-- HOME TAB -->
+  <div class="tab-content active" id="tab-home">
+    <div class="status-bar">
+      <div class="status-dot" id="wsStatusDot"></div>
+      <div class="status-text" id="wsStatusText">Checking connection...</div>
+    </div>
+    <div class="status-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="status-text" id="discordUserText">No Discord name set</div>
+    </div>
+    <div class="status-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <div class="status-text" id="todayCheckoutsText">Total checkouts today &mdash; 0</div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-content" id="tab-history">
+    <div class="order-list" id="orderList">
+      <div class="empty-state">No orders tracked yet.</div>
+    </div>
+    <button class="btn btn-secondary" id="clearHistoryBtn" style="margin-top:10px;">Clear History</button>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="tab-content" id="tab-settings">
+    <div class="field">
+      <div class="field-label">Discord Username <span class="saved-indicator" id="discordSaved">Saved</span></div>
+      <input type="text" class="field-input" id="settingsDiscordName" placeholder="Your Discord name">
+    </div>
+    <button class="btn btn-primary btn-small" id="saveDiscordBtn" style="margin-bottom:16px;">Save</button>
+
+    <div class="field">
+      <div class="field-label">Extension Info</div>
+      <div style="padding:8px 12px;background:#1a1a1a;border-radius:6px;font-size:12px;color:#666;line-height:1.7;">
+        <div>Version: <span style="color:#999;">1.0.0</span></div>
+        <div>Extension ID: <span style="color:#999;" id="extIdDisplay">Loading...</span></div>
+        <div>WebSocket Port: <span style="color:#999;">17720</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
