@@ -4,3 +4,4 @@ dist/
 *.dmg
 *.exe
 *.nsis
+.env

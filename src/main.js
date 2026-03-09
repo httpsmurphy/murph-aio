@@ -131,8 +131,8 @@ function handleExtensionMessage(msg) {
 }
 
 // --- Supabase Config (checkout tracking) ---
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'YOUR_ANON_KEY';
 
 async function logCheckoutToSupabase(data) {
   try {
